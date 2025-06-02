@@ -1,0 +1,111 @@
+=== MICRO TRADE ECONOMY SIMULATION LOGS ===
+
+CYCLE 1
+==================================================
+
+CONSUMER DECISIONS:
+------------------------------
+  • [Cycle 0] consumer: Consumed 1 food for 1.5 currency. Health: 100, Currency: 13.5
+  • [Cycle 0] consumer: Created buy request request_7290: 2 food @ max 2.5 each. Reserved 5.0 currency
+  • [Cycle 1] consumer: Labor capacity reset
+  • [Cycle 1] consumer: Consumed 1 food from inventory for 1.5 currency
+  • [Cycle 1] consumer: Maintained health at 100
+
+MARKET DECISIONS:
+------------------------------
+  • [Cycle 1] market: Labor capacity reset
+  • [Cycle 1] market: Reset labor capacity for all agents
+
+PRODUCER DECISIONS:
+------------------------------
+  • [Cycle 0] producer: Produced 1 units of food. Total: 9
+  • [Cycle 1] producer: Labor capacity reset
+  • [Cycle 1] producer: Consumed 1 food from inventory for 1.5 currency
+  • [Cycle 1] producer: Maintained health at 100
+
+TRADER DECISIONS:
+------------------------------
+  • [Cycle 0] trader: Consumed 1 food for 1.5 currency. Health: 100, Currency: 13.5
+  • [Cycle 0] trader: Created buy request request_3722: 2 food @ max 1.5 each. Reserved 3.0 currency
+  • [Cycle 1] trader: Labor capacity reset
+  • [Cycle 1] trader: Consumed 1 food from inventory for 1.5 currency
+  • [Cycle 1] trader: Maintained health at 100
+
+WORKER DECISIONS:
+------------------------------
+  • [Cycle 0] worker: Consumed 1 food for 1.5 currency. Health: 100, Currency: 10.5
+  • [Cycle 0] worker: Offered 5 labor units to producer at 1.5 per unit
+  • [Cycle 1] worker: Labor capacity reset
+  • [Cycle 1] worker: Consumed 1 food from inventory for 1.5 currency
+  • [Cycle 1] worker: Maintained health at 100
+
+==================================================
+
+CYCLE 2
+==================================================
+
+CONSUMER DECISIONS:
+------------------------------
+  • [Cycle 2] consumer: Labor capacity reset
+  • [Cycle 2] consumer: Health decreased to 85 (no food consumed)
+
+MARKET DECISIONS:
+------------------------------
+  • [Cycle 2] market: Labor capacity reset
+  • [Cycle 2] market: Reset labor capacity for all agents
+
+PRODUCER DECISIONS:
+------------------------------
+  • [Cycle 1] producer: Consumed 1 food for 1.5 currency. Health: 100, Currency: 12.0
+  • [Cycle 2] producer: Labor capacity reset
+  • [Cycle 2] producer: Consumed 1 food from inventory for 1.5 currency
+  • [Cycle 2] producer: Maintained health at 100
+
+TRADER DECISIONS:
+------------------------------
+  • [Cycle 1] trader: Created buy request request_7877: 2 food @ max 2.5 each. Reserved 5.0 currency
+  • [Cycle 2] trader: Labor capacity reset
+  • [Cycle 2] trader: Health decreased to 85 (no food consumed)
+
+WORKER DECISIONS:
+------------------------------
+  • [Cycle 1] worker: Created buy request request_2545: 2 food @ max 2.5 each. Reserved 5.0 currency
+  • [Cycle 2] worker: Labor capacity reset
+  • [Cycle 2] worker: Health decreased to 85 (no food consumed)
+
+==================================================
+
+CYCLE 3
+==================================================
+
+CONSUMER DECISIONS:
+------------------------------
+  • [Cycle 2] consumer: Created buy request request_1843: 2 food @ max 1.5 each. Reserved 3.0 currency
+  • [Cycle 3] consumer: Labor capacity reset
+  • [Cycle 3] consumer: Health decreased to 70 (no food consumed)
+
+MARKET DECISIONS:
+------------------------------
+  • [Cycle 3] market: Labor capacity reset
+  • [Cycle 3] market: Reset labor capacity for all agents
+
+PRODUCER DECISIONS:
+------------------------------
+  • [Cycle 2] producer: Created sell offer offer_2615: 5 food @ 1.5 each
+  • [Cycle 3] producer: Labor capacity reset
+  • [Cycle 3] producer: Consumed 1 food from inventory for 1.5 currency
+  • [Cycle 3] producer: Maintained health at 100
+
+TRADER DECISIONS:
+------------------------------
+  • [Cycle 3] trader: Labor capacity reset
+  • [Cycle 3] trader: Health decreased to 70 (no food consumed)
+
+WORKER DECISIONS:
+------------------------------
+  • [Cycle 2] worker: Offered 5 labor units to trader at 1.5 per unit
+  • [Cycle 3] worker: Labor capacity reset
+  • [Cycle 3] worker: Health decreased to 70 (no food consumed)
+
+==================================================
+

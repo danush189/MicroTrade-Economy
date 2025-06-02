@@ -1,3 +1,13 @@
+# --- Modularization Notice ---
+# This file is now modularized. See:
+# - models.py: Pydantic models and EconomyState
+# - tools.py: All tool classes
+# - agents.py: Agent definitions
+# - tasks.py: Task definitions
+# - main.py: Main simulation logic
+#
+# You can safely remove or comment out the code below after verifying the new modules.
+
 import os
 import logging
 import random
@@ -71,7 +81,39 @@ class EconomyState(BaseModel):
     requests: List[Request] = []
     transactions: List[Transaction] = []
     market_prices: Dict[str, float] = {}  # {good_name: price}
-    
+    cycle_logs: Dict[int, Dict[str, List[str]]] = {}  # {cycle: {agent_id: [decisions]}}
+    agent_decisions: Dict[str, List[str]] = {}  # Current cycle decisions
+
+    def log_agent_decision(self, agent_id: str, decision: str) -> None:
+        """Log a decision made by an agent in the current cycle"""
+        if agent_id not in self.agent_decisions:
+            self.agent_decisions[agent_id] = []
+        self.agent_decisions[agent_id].append(f"[Cycle {self.cycle}] {decision}")
+        
+    def finalize_cycle_logs(self) -> None:
+        """Move current cycle decisions to permanent logs"""
+        if self.agent_decisions:
+            self.cycle_logs[self.cycle] = self.agent_decisions.copy()
+            self.agent_decisions.clear()  # Clear for next cycle
+
+    def get_agent_cycle_log(self, agent_id: str, cycle: int) -> List[str]:
+        """Get decisions made by a specific agent in a specific cycle"""
+        return self.cycle_logs.get(cycle, {}).get(agent_id, [])
+
+    def save_logs_to_file(self, filename: str = "agent_decisions.log") -> None:
+        """Save all agent decisions to a log file"""
+        with open(filename, "w") as f:
+            f.write("=== MICRO TRADE ECONOMY SIMULATION LOGS ===\n\n")
+            for cycle, agents_data in self.cycle_logs.items():
+                f.write(f"CYCLE {cycle}\n")
+                f.write("=" * 50 + "\n")
+                for agent_id, decisions in agents_data.items():
+                    f.write(f"\n{agent_id.upper()} DECISIONS:\n")
+                    f.write("-" * 30 + "\n")
+                    for decision in decisions:
+                        f.write(f"  • {decision}\n")
+                f.write("\n" + "=" * 50 + "\n\n")
+
     def get_agent_state(self, agent_id: str) -> AgentState:
         """Get the state of a specific agent"""
         return self.agents.get(agent_id)
@@ -134,13 +176,15 @@ class ProduceTool:
             agent_state.goods[self.good_name] = 0
         
         agent_state.goods[self.good_name] += self.production_rate
-        
+
+        ECONOMY.log_agent_decision(agent_id, f"Produced {self.production_rate} units of {self.good_name}. Total: {agent_state.goods[self.good_name]}")
+    
         return f"Produced {self.production_rate} units of {self.good_name}. You now have {agent_state.goods[self.good_name]} units."
 
 class ConsumeTool:
     """Tool to consume goods"""
     
-    def run(self, agent_id: str, good_name: str, quantity: int = 1) -> str:
+    def run(self, agent_id: str, good_name: str = "food", quantity: int = 1) -> str:
         """Consume goods from agent's inventory"""
         agent_state = ECONOMY.get_agent_state(agent_id)
         if not agent_state:
@@ -150,6 +194,7 @@ class ConsumeTool:
         if good_name not in agent_state.goods or agent_state.goods[good_name] < quantity:
             # Reduce health when can't consume required goods
             agent_state.health -= 10
+            ECONOMY.log_agent_decision(agent_id, f"FAILED to consume {quantity} {good_name} - insufficient goods. Health reduced to {agent_state.health}")
             return f"Cannot consume {quantity} {good_name}. You only have {agent_state.goods.get(good_name, 0)}. Health reduced to {agent_state.health}."
         
         # Consume goods
@@ -166,6 +211,7 @@ class ConsumeTool:
         agent_state.goods[good_name] -= quantity
         agent_state.currency -= total_cost
         agent_state.health = min(100, agent_state.health + 5)  # Consuming food increases health
+        ECONOMY.log_agent_decision(agent_id, f"Consumed {quantity} {good_name} for {total_cost} currency. Health: {agent_state.health}, Currency: {agent_state.currency}")
 
         return f"Consumed {quantity} {good_name} for {total_cost} currency. You now have {agent_state.goods[good_name]} units. Currency: {agent_state.currency}, Health: {agent_state.health}."
 
@@ -191,7 +237,7 @@ class CreateOfferTool:
         )
         
         ECONOMY.offers.append(offer)
-        
+        ECONOMY.log_agent_decision(agent_id, f"Created sell offer {offer.offer_id}: {quantity} {good_name} @ {price} each")
         return f"Created offer {offer.offer_id} to sell {quantity} {good_name} at {price} each."
 
 class CreateRequestTool:
@@ -203,6 +249,7 @@ class CreateRequestTool:
         agent_state = ECONOMY.get_agent_state(agent_id) 
 
         if agent_state.currency < total_cost:
+            ECONOMY.log_agent_decision(agent_id, f"FAILED to create buy request - insufficient currency. Needed {total_cost}, have {agent_state.currency}")
             return f"Cannot create request. You only have {agent_state.currency} currency, but need {total_cost}."
 
         # Reserve the currency for this request
@@ -217,6 +264,7 @@ class CreateRequestTool:
         )
 
         ECONOMY.requests.append(request)
+        ECONOMY.log_agent_decision(agent_id, f"Created buy request {request.request_id}: {quantity} {good_name} @ max {max_price} each. Reserved {total_cost} currency")
 
         return f"Created request {request.request_id} to buy {quantity} {good_name} at max {max_price} each. Reserved {total_cost} currency."
 
@@ -321,7 +369,7 @@ class AcceptOfferTool:
         
         # Update market price
         ECONOMY.update_market_price(offer.good_name, offer.price)
-        
+        ECONOMY.log_agent_decision(agent_id, f"Accepted offer {offer_id}: bought {offer.quantity} {offer.good_name} for total {total_cost}. Remaining currency: {agent_state.currency}")
         return f"Accepted offer {offer_id}. Bought {offer.quantity} {offer.good_name} for {total_cost} currency. Remaining currency: {agent_state.currency}."
 
 class AcceptRequestTool:
@@ -347,19 +395,16 @@ class AcceptRequestTool:
         if not buyer_state:
             return f"Error: Buyer {request.buyer_id} not found"
         
-        # Check if buyer still has enough currency
-        total_cost = request.max_price * request.quantity
-        if buyer_state.currency < total_cost:
-            return f"Error: Buyer no longer has enough currency"
-        
+        # Remove redundant buyer currency check: currency was already reserved in request creation
         # Transfer goods and currency
         agent_state.goods[request.good_name] -= request.quantity
-        agent_state.currency += total_cost
+        agent_state.currency += request.max_price * request.quantity  # Seller receives reserved amount
         
         if request.good_name not in buyer_state.goods:
             buyer_state.goods[request.good_name] = 0
         buyer_state.goods[request.good_name] += request.quantity
-        buyer_state.currency -= total_cost
+        
+        # No further deduction from buyer; refund handled in market match only
         
         # Record transaction
         transaction = Transaction(
@@ -376,8 +421,8 @@ class AcceptRequestTool:
         
         # Update market price
         ECONOMY.update_market_price(request.good_name, request.max_price)
-        
-        return f"Accepted request {request_id}. Sold {request.quantity} {request.good_name} for {total_cost} currency."
+        ECONOMY.log_agent_decision(agent_id, f"Accepted request {request_id}: sold {request.quantity} {request.good_name} for total {request.max_price * request.quantity}. New currency: {agent_state.currency}")
+        return f"Accepted request {request_id}. Sold {request.quantity} {request.good_name} for {request.max_price * request.quantity} currency."
 
 class OfferLaborTool:
     """Tool to offer labor to other agents"""
@@ -407,7 +452,7 @@ class OfferLaborTool:
         )
         
         ECONOMY.offers.append(offer)
-        
+        ECONOMY.log_agent_decision(agent_id, f"Offered {labor_units} labor units to {target_agent_id} at {price_per_unit} per unit (offer {offer.offer_id})")
         return f"Created labor offer {offer.offer_id} to provide {labor_units} labor units to {target_agent_id} at {price_per_unit} each."
 
 class HireLaborTool:
@@ -461,7 +506,7 @@ class HireLaborTool:
         for good_name in agent_state.goods:
             boost_amount = int(offer.quantity * 0.5)  # Each labor unit increases production by 0.5
             agent_state.goods[good_name] += boost_amount
-            
+        ECONOMY.log_agent_decision(agent_id, f"Hired {offer.quantity} labor units from {offer.seller_id} for {total_cost}. Production boosted")
         return f"Hired {offer.quantity} labor units from {offer.seller_id} for {total_cost} currency. Production increased."
 
 class MarketMatchTool:
@@ -471,57 +516,35 @@ class MarketMatchTool:
         """Match compatible offers and requests"""
         matches_made = 0
         transactions_log = ""
-        
         # Copy lists to avoid modification during iteration
         offers = ECONOMY.offers.copy()
         requests = ECONOMY.requests.copy()
-        
         for offer in offers:
             matching_requests = [r for r in requests if r.good_name == offer.good_name 
                                and r.max_price >= offer.price
                                and r.quantity <= offer.quantity]
-            
             if matching_requests:
-                # Sort by price (highest first) to maximize market agent profit
                 matching_requests.sort(key=lambda r: r.max_price, reverse=True)
                 request = matching_requests[0]
-                
-                # Find buyer and seller
                 buyer_state = ECONOMY.get_agent_state(request.buyer_id)
                 seller_state = ECONOMY.get_agent_state(offer.seller_id)
-                
                 if not buyer_state or not seller_state:
                     continue
-                
-                # Calculate transaction details first
                 quantity = min(offer.quantity, request.quantity)
-                # Use the market price as an average between offer and request
                 actual_price = (offer.price + request.max_price) / 2
                 total_cost = actual_price * quantity
-                
-                # Market takes a small fee
-                market_fee = total_cost * 0.05  # 5% fee
+                market_fee = total_cost * 0.05
                 seller_amount = total_cost - market_fee
-                
-                # Check if conditions are still valid
-                # For seller: check if they have enough goods
+                # Seller must have enough goods
                 if (offer.good_name not in seller_state.goods or 
                     seller_state.goods[offer.good_name] < quantity):
                     continue
-                
-                # For buyer: Since currency was reserved when creating request,
-                # we need to check if they have enough reserved currency
-                # The buyer should have already reserved: request.max_price * request.quantity
+                # Buyer reserved currency at request creation
                 reserved_amount = request.max_price * quantity
-                
-                # Calculate refund (if actual price is lower than max price)
                 refund_amount = reserved_amount - total_cost
-                
-                # Buyer should have non-negative currency after getting refund
+                # Refund must not make buyer's currency negative
                 if buyer_state.currency + refund_amount < 0:
-                    # This shouldn't happen if currency reservation worked properly
                     continue
-                
                 # Transfer goods and currency
                 seller_state.goods[offer.good_name] -= quantity
                 seller_state.currency += seller_amount
@@ -530,11 +553,10 @@ class MarketMatchTool:
                     buyer_state.goods[offer.good_name] = 0
                 buyer_state.goods[offer.good_name] += quantity
                 
-                # Give refund to buyer (they already had currency deducted when creating request)
-                # If actual price equals max price, refund is 0
+                # Refund difference to buyer (if any)
                 buyer_state.currency += refund_amount
                 
-                # Add market fee to market agent
+                # Market agent receives fee
                 market_agent = ECONOMY.get_agent_state(agent_id)
                 if market_agent:
                     market_agent.currency += market_fee
@@ -549,38 +571,29 @@ class MarketMatchTool:
                     facilitated_by_market=True
                 )
                 ECONOMY.transactions.append(transaction)
-                
-                # Update market price
                 ECONOMY.update_market_price(offer.good_name, actual_price)
-                
-                # Remove or update the offer and request
                 if quantity == offer.quantity:
                     ECONOMY.offers = [o for o in ECONOMY.offers if o.offer_id != offer.offer_id]
                 else:
                     for o in ECONOMY.offers:
                         if o.offer_id == offer.offer_id:
                             o.quantity -= quantity
-                
                 if quantity == request.quantity:
                     ECONOMY.requests = [r for r in ECONOMY.requests if r.request_id != request.request_id]
                 else:
                     for r in ECONOMY.requests:
                         if r.request_id == request.request_id:
                             r.quantity -= quantity
-                
                 matches_made += 1
                 transactions_log += f"Matched: {quantity} {offer.good_name} from {offer.seller_id} to {request.buyer_id} at {actual_price} each (market fee: {market_fee:.2f}, buyer refund: {refund_amount:.2f})\n"
-                
-                # Remove these from our working copies to avoid duplicate matches
                 requests = [r for r in requests if r.request_id != request.request_id]
-        
         if matches_made > 0:
             total_fees = sum(
             tx.price * tx.quantity * 0.05
             for tx in ECONOMY.transactions
-            if tx.facilitated_by_market
+            if getattr(tx, 'facilitated_by_market', False)
             )
-
+            ECONOMY.log_agent_decision(agent_id, f"Facilitated trade: {quantity} {offer.good_name} from {offer.seller_id} to {request.buyer_id} at {actual_price} each. Fee collected: {market_fee:.2f}")
             return (
                 f"Made {matches_made} matches:\n{transactions_log}"
                 f"Total market fees collected: {total_fees:.2f}"
@@ -1169,7 +1182,10 @@ def end_cycle():
     ECONOMY.offers = []
     ECONOMY.requests = []
     ECONOMY.transactions = []
-    
+    # Finalize logs for this cycle
+    ECONOMY.finalize_cycle_logs()    
+    # Save logs to file after each cycle
+    ECONOMY.save_logs_to_file("agent_decisions.log")
     print(f"Ended cycle {ECONOMY.cycle - 1}. Starting cycle {ECONOMY.cycle}.")
     return f"Ended cycle {ECONOMY.cycle - 1}. Starting cycle {ECONOMY.cycle}."
 
@@ -1215,4 +1231,3 @@ def run_simulation(cycles=5,save_file: str = "economy_state.json", resume: bool 
 # Run the simulation if this script is executed directly
 if __name__ == "__main__":
     run_simulation(3)
- 
