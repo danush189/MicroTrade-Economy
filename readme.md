@@ -54,7 +54,7 @@ This simulation creates a micro-economy where AI agents act as producers, trader
 
 1. **Clone or download the project files**
    ```bash
-   # Ensure you have micro_trade_economy.py in your project directory
+   git clone https://github.com/danush189/MicroTrade-Economy.git #Make sure you have all the required files.
    ```
 
 2. **Install dependencies**
@@ -71,7 +71,7 @@ This simulation creates a micro-economy where AI agents act as producers, trader
 
 4. **Verify Installation**
    ```bash
-   python micro_trade_economy.py
+   python main.py
    ```
 
 ## 🎮 Usage
@@ -80,7 +80,7 @@ This simulation creates a micro-economy where AI agents act as producers, trader
 
 Run a standard 5-cycle simulation:
 ```python
-from micro_trade_economy import run_simulation
+from main import run_simulation
 
 # Run 5 cycles with default settings
 results = run_simulation(cycles=5)
@@ -89,7 +89,7 @@ results = run_simulation(cycles=5)
 ### Advanced Usage
 
 ```python
-from micro_trade_economy import run_simulation, ECONOMY
+from main import run_simulation, ECONOMY
 
 # Run simulation with custom parameters
 results = run_simulation(
@@ -114,7 +114,7 @@ print(f"Total transactions: {len(ECONOMY.transactions)}")
 
 ```bash
 # Run default simulation
-python micro_trade_economy.py
+python main.py
 
 # For extended simulations, modify the script's main section
 ```
