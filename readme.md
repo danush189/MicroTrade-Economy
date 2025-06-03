@@ -4,24 +4,22 @@ A sophisticated multi-agent economic simulation built with CrewAI that models a 
 
 ## 🌟 Overview
 
-This simulation creates a micro-economy where AI agents act as producers, consumers, traders, workers, and market facilitators. Each agent has specific goals, capabilities, and decision-making processes that drive realistic economic interactions including production, consumption, trading, labor markets, and price discovery.
+This simulation creates a micro-economy where AI agents act as producers, traders, workers, and market facilitators. Each agent has specific goals, capabilities, and decision-making processes that drive realistic economic interactions including production, trading, labor markets, and price discovery.
 
 ## 🏗️ Architecture
 
 ### Core Components
 
 - **Economy State Management**: Centralized state tracking for all agents, goods, transactions, and market conditions
-- **Agent-Based Modeling**: Five distinct agent types with unique behaviors and objectives
+- **Agent-Based Modeling**: Four distinct agent types with unique behaviors and objectives
 - **Market Mechanics**: Dynamic pricing, offer/request matching, and transaction facilitation
 - **Labor Market**: Worker agents can offer labor services to boost production
-- **Health System**: Agents must consume resources to maintain health and survival
 
 ### Agent Types
 
 | Agent | Role | Primary Goal | Key Capabilities |
 |-------|------|--------------|------------------|
 | **Producer** | Food Producer | Maximize profit through production and sales | Produce food, create sell offers, hire labor |
-| **Consumer** | Food Consumer | Maintain health through food consumption | Buy food, create buy requests, survive |
 | **Market** | Trade Facilitator | Facilitate trades and collect fees | Match offers/requests, earn transaction fees |
 | **Worker** | Labor Provider | Earn currency through labor services | Offer labor, consume food, survive |
 | **Trader** | Goods Trader | Profit through arbitrage | Buy low, sell high, market analysis |
@@ -33,7 +31,6 @@ This simulation creates a micro-economy where AI agents act as producers, consum
 - **Transaction Matching**: Automated matching of buy/sell orders
 - **Labor Market**: Hire workers to boost production capacity
 - **Currency System**: Track wealth and enable complex transactions
-- **Health & Survival**: Agents must consume resources or face penalties
 
 ### Simulation Features
 - **Multi-Cycle Simulation**: Run extended economic periods
@@ -128,7 +125,6 @@ python micro_trade_economy.py
 Each cycle provides detailed status for every agent:
 ```
 producer: Health=100, Currency=15.5, Goods={'food': 3}
-consumer: Health=95, Currency=5.2, Goods={'food': 1}
 market: Health=100, Currency=2.1, Goods={}
 worker: Health=90, Currency=8.7, Goods={'food': 2}
 trader: Health=85, Currency=12.3, Goods={'food': 4}

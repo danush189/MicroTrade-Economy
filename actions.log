@@ -1,15 +1,14 @@
 Initialized new economy simulation
 
 ===== Starting Cycle 1 =====
-[Cycle 0] producer: Produced 1 units of food. Total: 9
-[Cycle 0] consumer: Consumed 1 food for 1.5 currency. Health: 100, Currency: 13.5
-[Cycle 0] consumer: Created buy request request_7290: 2 food @ max 2.5 each. Reserved 5.0 currency
+[Cycle 0] producer: Produced 1 units of food without labor. Health reduced to 95. Total: 9
+[Cycle 0] producer: Consumed 1 food for 1.5 currency. Health: 100, Currency: 13.5
+[Cycle 0] producer: Created sell offer offer_7564: 2 food @ 1.8 each
+[Cycle 0] worker: Offered 4 labor units to producer at 1.5 per unit
 [Cycle 0] worker: Consumed 1 food for 1.5 currency. Health: 100, Currency: 10.5
-[Cycle 0] worker: Offered 5 labor units to producer at 1.5 per unit
 [Cycle 0] trader: Consumed 1 food for 1.5 currency. Health: 100, Currency: 13.5
-[Cycle 0] trader: Created buy request request_3722: 2 food @ max 1.5 each. Reserved 3.0 currency
+[Cycle 0] trader: Created buy request request_1373: 2 food @ max 1.5 each. Reserved 3.0 currency
 [Cycle 1] producer: Labor capacity reset
-[Cycle 1] consumer: Labor capacity reset
 [Cycle 1] market: Labor capacity reset
 [Cycle 1] worker: Labor capacity reset
 [Cycle 1] trader: Labor capacity reset
@@ -18,74 +17,20 @@ Initialized new economy simulation
 ===== End of Cycle 0 =====
 [Cycle 1] producer: Consumed 1 food from inventory for 1.5 currency
 [Cycle 1] producer: Maintained health at 100
-[Cycle 1] consumer: Consumed 1 food from inventory for 1.5 currency
-[Cycle 1] consumer: Maintained health at 100
 [Cycle 1] worker: Consumed 1 food from inventory for 1.5 currency
 [Cycle 1] worker: Maintained health at 100
 [Cycle 1] trader: Consumed 1 food from inventory for 1.5 currency
 [Cycle 1] trader: Maintained health at 100
+[Cycle 1] producer: Hired 4 labor units for 1.5 currency
+[Cycle 1] worker: Labor contract fulfilled for 1.5 currency
 
 Ended cycle 0. Starting cycle 1
 
 ===== Cycle Summary =====
-consumer: Health=100, Currency=7.0, Goods={'food': 0}
-market: Health=100, Currency=5.0, Goods={}
-producer: Health=100, Currency=13.5, Goods={'food': 8}
+market: Health=100, Currency=20.0, Goods={}
+producer: Health=100, Currency=10.5, Goods={'food': 7}
 trader: Health=100, Currency=9.0, Goods={'food': 0}
-worker: Health=100, Currency=9.0, Goods={'food': 0}
+worker: Health=100, Currency=10.5, Goods={'food': 0}
 
 ===== Starting Cycle 2 =====
-[Cycle 1] producer: Consumed 1 food for 1.5 currency. Health: 100, Currency: 12.0
-[Cycle 1] worker: Created buy request request_2545: 2 food @ max 2.5 each. Reserved 5.0 currency
-[Cycle 1] trader: Created buy request request_7877: 2 food @ max 2.5 each. Reserved 5.0 currency
-[Cycle 2] producer: Labor capacity reset
-[Cycle 2] consumer: Labor capacity reset
-[Cycle 2] market: Labor capacity reset
-[Cycle 2] worker: Labor capacity reset
-[Cycle 2] trader: Labor capacity reset
-[Cycle 2] market: Reset labor capacity for all agents
-
-===== End of Cycle 1 =====
-[Cycle 2] producer: Consumed 1 food from inventory for 1.5 currency
-[Cycle 2] producer: Maintained health at 100
-[Cycle 2] consumer: Health decreased to 85 (no food consumed)
-[Cycle 2] worker: Health decreased to 85 (no food consumed)
-[Cycle 2] trader: Health decreased to 85 (no food consumed)
-
-Ended cycle 1. Starting cycle 2
-
-===== Cycle Summary =====
-consumer: Health=85, Currency=7.0, Goods={'food': 0}
-market: Health=100, Currency=5.0, Goods={}
-producer: Health=100, Currency=10.5, Goods={'food': 6}
-trader: Health=85, Currency=4.0, Goods={'food': 0}
-worker: Health=85, Currency=4.0, Goods={'food': 0}
-
-===== Starting Cycle 3 =====
-[Cycle 2] producer: Created sell offer offer_2615: 5 food @ 1.5 each
-[Cycle 2] consumer: Created buy request request_1843: 2 food @ max 1.5 each. Reserved 3.0 currency
-[Cycle 2] worker: Offered 5 labor units to trader at 1.5 per unit
-[Cycle 3] producer: Labor capacity reset
-[Cycle 3] consumer: Labor capacity reset
-[Cycle 3] market: Labor capacity reset
-[Cycle 3] worker: Labor capacity reset
-[Cycle 3] trader: Labor capacity reset
-[Cycle 3] market: Reset labor capacity for all agents
-
-===== End of Cycle 2 =====
-[Cycle 3] producer: Consumed 1 food from inventory for 1.5 currency
-[Cycle 3] producer: Maintained health at 100
-[Cycle 3] consumer: Health decreased to 70 (no food consumed)
-[Cycle 3] worker: Health decreased to 70 (no food consumed)
-[Cycle 3] trader: Health decreased to 70 (no food consumed)
-
-Ended cycle 2. Starting cycle 3
-
-===== Cycle Summary =====
-consumer: Health=70, Currency=4.0, Goods={'food': 0}
-market: Health=100, Currency=5.0, Goods={}
-producer: Health=100, Currency=9.0, Goods={'food': 5}
-trader: Health=70, Currency=4.0, Goods={'food': 0}
-worker: Health=70, Currency=4.0, Goods={'food': 0}
-
-Simulation completed. State saved to economy_state.json
+[Cycle 1] producer: Created sell offer offer_6855: 5 food @ 1.5 each

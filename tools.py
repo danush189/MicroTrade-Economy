@@ -11,15 +11,24 @@ class ProduceTool:
     def __init__(self, good_name: str, production_rate: int = 1):
         self.good_name = good_name
         self.production_rate = production_rate
-    def run(self, agent_id: str) -> str:
+
+    def run(self, agent_id: str, use_labor: bool = False) -> str:
         agent_state = ECONOMY.get_agent_state(agent_id) if ECONOMY else None
         if not agent_state:
             return f"Error: Agent {agent_id} not found"
+
         if self.good_name not in agent_state.goods:
             agent_state.goods[self.good_name] = 0
-        agent_state.goods[self.good_name] += self.production_rate
-        ECONOMY.log_agent_decision(agent_id, f"Produced {self.production_rate} units of {self.good_name}. Total: {agent_state.goods[self.good_name]}")
-        return f"Produced {self.production_rate} units of {self.good_name}. You now have {agent_state.goods[self.good_name]} units."
+
+        if use_labor and agent_state.labor_used > 0:
+            agent_state.goods[self.good_name] += self.production_rate * agent_state.labor_used
+            ECONOMY.log_agent_decision(agent_id, f"Produced {self.production_rate * agent_state.labor_used} units of {self.good_name} using labor. Total: {agent_state.goods[self.good_name]}")
+        else:
+            agent_state.goods[self.good_name] += self.production_rate
+            agent_state.health -= 5  # Health penalty for producing without labor
+            ECONOMY.log_agent_decision(agent_id, f"Produced {self.production_rate} units of {self.good_name} without labor. Health reduced to {agent_state.health}. Total: {agent_state.goods[self.good_name]}")
+
+        return f"Produced {self.production_rate} units of {self.good_name}. You now have {agent_state.goods[self.good_name]} units. Health: {agent_state.health}."
 
 class ConsumeTool:
     """Tool to consume goods and affect agent's health and currency"""
@@ -28,14 +37,17 @@ class ConsumeTool:
         if not agent_state:
             return f"Error: Agent {agent_id} not found"
         if good_name not in agent_state.goods or agent_state.goods[good_name] < quantity:
-            agent_state.health -= 10
+            agent_state.health -= 5  # Reduced penalty
             ECONOMY.log_agent_decision(agent_id, f"FAILED to consume {quantity} {good_name} - insufficient goods. Health reduced to {agent_state.health}")
             return f"Cannot consume {quantity} {good_name}. You only have {agent_state.goods.get(good_name, 0)}. Health reduced to {agent_state.health}."
         food_price = ECONOMY.market_prices.get(good_name, 1.0)
         total_cost = food_price * quantity
         if agent_state.currency < total_cost:
-            agent_state.health -= 15
-            return f"Cannot afford {quantity} {good_name} (costs {total_cost}, you have {agent_state.currency}). Health reduced to {agent_state.health}."
+            loan_amount = total_cost - agent_state.currency
+            agent_state.currency += loan_amount
+            market_state = ECONOMY.get_agent_state("market")
+            market_state.currency -= loan_amount
+            ECONOMY.log_agent_decision(agent_id, f"Received loan of {loan_amount} currency to afford {quantity} {good_name}")
         agent_state.goods[good_name] -= quantity
         agent_state.currency -= total_cost
         agent_state.health = min(100, agent_state.health + 5)
@@ -179,30 +191,20 @@ class OfferLaborTool:
         return f"Created labor offer {offer.offer_id} to provide {labor_units} labor units at {price_per_unit} each"
 
 class HireLaborTool:
-    """Tool to hire labor from other agents"""
-    
-    def calculate_production_boost(self, labor_units: int) -> int:
-        """Calculate the production boost from hired labor"""
-        base_boost = 2  # Base production increase per labor unit
-        efficiency_multiplier = 1.5  # 50% efficiency bonus
-        return int(labor_units * base_boost * efficiency_multiplier)
-    
-    def execute(self, agent_state, other_agent_state, labor_units: int) -> bool:
-        cost_per_unit = 1.0
-        if agent_state.currency > 10:
-            cost_per_unit = 1.2
-        elif agent_state.currency < 5:
-            cost_per_unit = 0.8
-            
-        total_cost = cost_per_unit * labor_units
-        production_boost = self.calculate_production_boost(labor_units)
-        
-        if agent_state.currency >= total_cost and agent_state.currency > total_cost * 2:
-            agent_state.currency -= total_cost
-            other_agent_state.currency += total_cost
-            agent_state.labor_capacity += production_boost
-            return True
-        return False
+    """Tool to hire labor from workers"""
+    def run(self, agent_id: str, offer_id: str) -> str:
+        agent_state = ECONOMY.get_agent_state(agent_id) if ECONOMY else None
+        if not agent_state:
+            return f"Error: Agent {agent_id} not found"
+        labor_offer = next((offer for offer in ECONOMY.offers if offer.offer_id == offer_id), None)
+        if not labor_offer:
+            return f"Error: Labor offer {offer_id} not found"
+        if agent_state.currency < labor_offer.price:
+            return f"Error: Insufficient currency to hire labor (requires {labor_offer.price}, has {agent_state.currency})"
+        agent_state.currency -= labor_offer.price
+        agent_state.labor_used += labor_offer.quantity
+        ECONOMY.log_agent_decision(agent_id, f"Hired {labor_offer.quantity} labor units for {labor_offer.price} currency")
+        return f"Hired {labor_offer.quantity} labor units for {labor_offer.price} currency. Remaining currency: {agent_state.currency}."
 
 class MarketMatchTool:
     """Tool for Market Agent to match offers and requests"""

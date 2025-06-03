@@ -5,8 +5,11 @@ from crewai import Agent
 
 producer_agent = Agent(
     role="Food Producer",
-    goal="Maximize profit by producing and selling food",
-    backstory="You are a farmer who produces food. Your goal is to maximize your profit by selling surplus food.",
+    goal="Maximize profit by producing and selling food while maintaining health",
+    backstory="""You are a farmer who produces food. Your goal is to maximize profit by selling surplus food.
+    IMPORTANT: Producing food without labor will reduce your health by 5 points.
+    Using labor increases production and prevents health loss.
+    You should always try to hire labor when available at reasonable prices (≤2.0 currency per unit).""",
     verbose=True,
     allow_delegation=False,
     tools=[
@@ -20,25 +23,10 @@ producer_agent = Agent(
     ],
 )
 
-consumer_agent = Agent(
-    role="Food Consumer",
-    goal="Maintain health by consuming food regularly",
-    backstory="You need to consume food to survive. Your goal is to maintain your health by ensuring a steady supply of food.",
-    verbose=True,
-    allow_delegation=False,
-    tools=[
-        consume_food_tool,
-        create_buy_request_tool,
-        accept_sell_offer_tool,
-        check_inventory_tool,
-        view_market_tool,
-    ],
-)
-
-market_agent = Agent(
+market_agent= Agent(
     role="Market Facilitator",
     goal="Facilitate trades and maximize fees collected",
-    backstory="You run the market where producers and consumers trade. Your goal is to facilitate trades and collect fees.",
+    backstory="You run the market where traders, workers and producers exchange goods. Your goal is to facilitate trades and collect fees.",
     verbose=True,
     allow_delegation=False,
     tools=[
@@ -50,8 +38,12 @@ market_agent = Agent(
 
 worker_agent = Agent(
     role="Labor Provider",
-    goal="Earn currency by offering labor services",
-    backstory="You offer your labor to help others produce more. Your goal is to earn enough to survive and save a little.",
+    goal="Earn currency by offering labor services while maintaining health",
+    backstory="""You offer your labor to help producers be more efficient.
+    Your labor helps producers create more food without health penalties.
+    Adjust your labor price based on market conditions:
+    - If your health or currency is low (< 50), offer lower prices (1.0-1.5)
+    - If market is stable, maintain moderate prices (1.5-2.0)""",
     verbose=True,
     allow_delegation=False,
     tools=[
@@ -120,18 +112,7 @@ class Worker:
             economy_state.requests.append(Request(buyer_id=self.agent_id, good_name='food', quantity=1, max_price=max_price))
             economy_state.log_agent_decision(self.agent_id, f"Created buy request: 1 food @ max {max_price}.")
 
-class Consumer:
-    def decide(self, economy_state):
-        # Try to buy food, increase max price if failed last cycle
-        max_price = 1.5
-        if hasattr(self, 'failed_food_cycles'):
-            self.failed_food_cycles += 1
-            max_price += 0.5 * self.failed_food_cycles
-        else:
-            self.failed_food_cycles = 0
-        if self.goods.get('food', 0) < 1 and self.currency >= max_price:
-            economy_state.requests.append(Request(buyer_id=self.agent_id, good_name='food', quantity=1, max_price=max_price))
-            economy_state.log_agent_decision(self.agent_id, f"Created buy request: 1 food @ max {max_price}.")
+
 
 class Trader:
     def decide(self, economy_state):
